@@ -1,3 +1,7 @@
+/* IBM Plex Sans 폰트 추가 */
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@700;900&display=swap');
+
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,9 +9,436 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: white;
 }
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
+}
+
+/* 앱 컨테이너 */
+.app-container {
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 컨텐츠 래퍼 */
+.content-wrapper {
+  width: 100%;
+  padding: 0;
+  box-sizing: border-box;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 텍스트 정렬 */
+.text-center {
+  text-align: center;
+}
+
+/* 앱 제목 - 여백 추가 */
+.app-title-container {
+  margin-top: 24px; /* 48px의 절반으로 수정 */
+  margin-bottom: 40px;
+}
+
+.app-title {
+  color: #f97316;
+  font-size: 36px;
+  font-weight: 900; /* 최대 두께 사용 */
+  margin-bottom: 8px;
+  font-family: 'IBM Plex Sans', sans-serif;
+}
+
+/* 폼 그룹 - 일관된 간격 */
+.form-group {
+  margin-bottom: 24px;
+}
+
+/* 레이블 */
+.form-label {
+  display: block;
+  font-weight: 500;
+  margin-bottom: 16px;
+  color: #444;
+}
+
+/* 입력 필드 */
+.form-input {
+  width: 100%;
+  padding: 16px;
+  border: 1px solid #ddd;
+  border-radius: 12px;
+  font-size: 16px;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.form-input:focus {
+  border-color: #f97316;
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.2);
+}
+
+/* 버튼 컨테이너 */
+.button-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-bottom: 32px;
+}
+
+/* 버튼 옵션 */
+.button-option {
+  border: 2px solid #ddd;
+  border-radius: 12px;
+  padding: 16px;
+  background-color: white;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: all 0.2s;
+}
+
+.button-option.selected {
+  border-color: #f97316;
+  background-color: #fff7ed;
+}
+
+/* 버튼 아이콘 */
+.button-option-icon {
+  width: 96px;
+  height: 96px;
+  position: relative;
+  margin-bottom: 16px;
+  transition: transform 0.2s;
+}
+
+/* 선택 표시 */
+.selection-indicator {
+  position: absolute;
+  top: -8px;
+  right: -8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.selection-indicator.green {
+  background-color: #22c55e;
+}
+
+.selection-indicator.red {
+  background-color: #ef4444;
+}
+
+.button-option.selected .button-option-icon {
+  transform: scale(1.1);
+}
+
+/* 버튼 레이블 */
+.button-option-label {
+  font-weight: 500;
+  color: #444;
+}
+
+.button-option.selected .button-option-label {
+  color: #f97316;
+}
+
+/* 요일 선택기 - 간격 증가 */
+.day-selector {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px; /* 간격 추가 */
+}
+
+/* 요일 버튼 - 완전한 원형으로 변경 */
+.day-button {
+  flex: 1; /* 균등하게 공간 배분 */
+  height: 56px;
+  width: 56px; /* 동일한 너비 지정하여 완전한 원형 보장 */
+  aspect-ratio: 1/1; /* 항상 1:1 비율 유지 */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  font-weight: 500;
+  background-color: #f1f1f1;
+  color: #666;
+  cursor: pointer;
+  position: relative;
+  transition: all 0.2s;
+  border: none;
+  margin: 0 auto; /* 중앙 정렬 */
+}
+
+.day-button:disabled {
+  background-color: #e0e0e0;
+  color: #aaa;
+  cursor: not-allowed;
+}
+
+.day-button.selected {
+  background-color: #f97316;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 4px 6px rgba(249, 115, 22, 0.25);
+}
+
+/* 오늘 표시 */
+.today-indicator {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 16px;
+  height: 16px;
+  background-color: #22c55e;
+  border-radius: 50%;
+}
+
+/* 제출 버튼 - 하단에 고정 */
+.form-footer {
+  margin-top: auto;
+  padding-top: 32px;
+  padding-bottom: 32px;
+}
+
+.submit-button {
+  width: 100%;
+  padding: 16px;
+  background-color: #f97316;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(249, 115, 22, 0.3);
+  transition: background-color 0.2s;
+}
+
+.submit-button:hover {
+  background-color: #ea580c;
+}
+
+/* 반응형 디자인을 위한 미디어 쿼리 */
+@media (max-width: 480px) {
+  .app-container {
+    padding: 0 16px;
+  }
+  
+  .app-title-container {
+    margin-top: 16px; /* 32px의 절반으로 수정 */
+    margin-bottom: 32px;
+  }
+  
+  .app-title {
+    font-size: 30px; /* 반응형에서도 폰트 크기 키움 */
+  }
+  
+  .button-option-icon {
+    width: 80px;
+    height: 80px;
+  }
+  
+  .day-button {
+    height: 48px;
+    width: 48px; /* 동일한 너비로 설정 */
+    max-width: none; /* max-width 제거 */
+    font-size: 16px;
+  }
+  
+  .form-input {
+    padding: 12px;
+  }
+  
+  .submit-button {
+    padding: 14px;
+  }
+  
+  .form-group {
+    margin-bottom: 24px;
+  }
+  
+  .form-footer {
+    padding-bottom: 24px;
+  }
+/* 카드 컨테이너 */
+.card {
+  max-width: 500px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 20px;
+  box-sizing: border-box;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 사용자 목록 스타일 */
+.user-list, .user-cards, .final-members-list {
+  margin-top: 16px;
+  margin-bottom: 24px;
+}
+
+.user-item, .user-card, .final-member-item {
+  background-color: #f9f9f9;
+  border-radius: 12px;
+  padding: 12px;
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.user-item.selected, .user-card.selected {
+  background-color: #fff7ed;
+  border: 1px solid #f97316;
+}
+
+/* 섹션 제목 */
+.section-title {
+  font-size: 18px;
+  font-weight: bold;
+  margin: 24px 0 12px;
+  color: #333;
+}
+
+/* 안내 메시지 */
+.info-message {
+  text-align: center;
+  color: #666;
+  margin: 16px 0;
+  font-size: 14px;
+}
+
+/* 보기 전환 버튼 */
+.view-toggle {
+  display: flex;
+  gap: 8px;
+}
+
+.view-toggle button {
+  padding: 6px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background-color: white;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.view-toggle button.active {
+  background-color: #f97316;
+  color: white;
+  border-color: #f97316;
+}
+
+/* 선택된 사용자 섹션 */
+.selected-users-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 1px solid #eee;
+}
+
+.selected-users-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.selected-user-tag {
+  background-color: #f97316;
+  color: white;
+  border-radius: 99px;
+  padding: 4px 12px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.remove-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 16px;
+  cursor: pointer;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 점약잡기 버튼 */
+.reserve-button {
+  width: 100%;
+  padding: 14px;
+  background-color: #f97316;
+  color: white;
+  font-weight: bold;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  cursor: pointer;
+  margin-top: 16px;
+  box-shadow: 0 4px 6px rgba(249, 115, 22, 0.3);
+}
+
+.app-title-container { margin-bottom: 24px; }
+.form-label { font-size: 18px; font-weight: bold; color: #333; margin-bottom: 8px; }
+.form-group { margin-bottom: 24px; }
+.button-container .button-option {
+  padding: 8px 12px;
+  margin-left: 4px;
+  background-color: #f1f1f1;
+  border-radius: 4px;
+  color: #333;
+}
+.button-option.selected {
+  background-color: #f97316;
+  color: white;
+}
+.submit-button {
+  background-color: #f97316;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: bold;
+}
+
+.icon-button {
+  padding: 8px;
+  border-radius: 6px;
+  background-color: #f1f1f1;
+  margin-left: 8px;
+  color: #666;
+  border: none;
+}
+.icon-button.selected {
+  background-color: #f97316;
+  color: white;
+}
+.icon {
+  width: 20px;
+  height: 20px;
+}
+
 }
