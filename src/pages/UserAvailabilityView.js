@@ -1,25 +1,78 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function UserAvailabilityView() {
   const navigate = useNavigate();
 
-  const today = '목';
+  // 현재 한국 시간 기준 요일 계산
+  const getKoreanDay = () => {
+    const now = new Date();
+    // 한국 시간으로 변환 (UTC+9)
+    const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    const day = koreaTime.getUTCDay();
+    const dayMap = ['일', '월', '화', '수', '목', '금', '토'];
+    return dayMap[day];
+  };
+
+  const today = getKoreanDay();
   const dayOrder = ['월', '화', '수', '목', '금'];
   const todayIndex = dayOrder.indexOf(today);
 
-  const [users, setUsers] = useState([
-    { id: 1, name: '피오', availableDays: ['목', '금'] },
-    { id: 2, name: '헌우', availableDays: ['목'] },
-    { id: 3, name: '성만', availableDays: ['목', '금'] },
-    { id: 4, name: '재민', availableDays: ['목'] },
-    { id: 5, name: '민지', availableDays: ['목', '금'] },
-    { id: 6, name: '유진', availableDays: ['목'] },
-    { id: 7, name: '하준', availableDays: ['목', '금'] },
-  ]);
-
+  const [users, setUsers] = useState([]);
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showDialog, setShowDialog] = useState(false);
+
+  // localStorage에서 사용자 데이터 로드 (LunchAvailabilityForm에서 입력한 데이터)
+  useEffect(() => {
+    const loadUsers = () => {
+      const honbabUsers = JSON.parse(localStorage.getItem('honbabUsers') || '[]');
+      console.log('Loaded honbabUsers:', honbabUsers); // 디버깅용
+      
+      // 데이터 형식 변환 (영문 요일을 한글로 변환)
+      const convertedUsers = honbabUsers.map(user => ({
+        id: user.id,
+        name: user.name,
+        availableDays: user.availableDays.map(day => {
+          const dayMap = { 'Mon': '월', 'Tue': '화', 'Wed': '수', 'Thu': '목', 'Fri': '금' };
+          return dayMap[day] || day;
+        })
+      }));
+      console.log('Converted users:', convertedUsers); // 디버깅용
+      setUsers(convertedUsers);
+    };
+
+    loadUsers();
+
+    // 페이지가 포커스를 받을 때마다 데이터 새로고침
+    const handleFocus = () => {
+      loadUsers();
+    };
+
+    window.addEventListener('focus', handleFocus);
+
+    // 매주 토요일 00:00에 데이터 초기화
+    const checkAndResetDB = () => {
+      const now = new Date();
+      const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+      
+      // 토요일 00:00인지 확인
+      if (koreaTime.getUTCDay() === 6 && koreaTime.getUTCHours() === 0 && koreaTime.getUTCMinutes() === 0) {
+        localStorage.removeItem('honbabUsers');
+        setUsers([]);
+      }
+    };
+
+    // 페이지 로드 시 체크
+    checkAndResetDB();
+    
+    // 매분마다 체크
+    const interval = setInterval(checkAndResetDB, 60000);
+    
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener('focus', handleFocus);
+    };
+  }, []);
 
   const toggleUserSelection = (user) => {
     if (selectedUsers.some(u => u.id === user.id)) {
@@ -82,108 +135,120 @@ export default function UserAvailabilityView() {
       
       {/* 메인 컨텐츠 */}
       <div style={{display: 'flex', flexDirection: 'column', flex: 1}}>
-        <div>
-          {/* 점심 가능한 동료들 리스트 */}
-          <div className="form-group">
-            <label className="form-label">점심 가능한 동료들</label>
-            
-            <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
-              {users.map(user => (
-                <div 
-                  key={user.id} 
-                  className={`list-item ${selectedUsers.some(u => u.id === user.id) ? 'selected' : ''}`} 
-                  onClick={() => toggleUserSelection(user)}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    padding: '15px',
-                    border: '2px solid #f3e3c2',
-                    borderRadius: '12px',
-                    backgroundColor: selectedUsers.some(u => u.id === user.id) ? '#e8f5e9' : '#ffffff',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                    position: 'relative'
-                  }}
-                >
-                  <div className="button-option-icon" style={{width: '40px', height: '40px', marginRight: '15px', position: 'relative'}}>
-                    <HappyRiceBowl />
-                    {selectedUsers.some(u => u.id === user.id) && (
-                      <div className="selection-indicator green">✓</div>
-                    )}
+        {users.length === 0 ? (
+          // 데이터가 없을 때 표시
+          <div style={{
+            textAlign: 'center',
+            padding: '40px 20px',
+            color: '#666',
+            fontSize: '16px'
+          }}>
+            이번 주 점약 내용이 아직 없어요.
+          </div>
+        ) : (
+          <div>
+            {/* 점심 가능한 동료들 리스트 */}
+            <div className="form-group">
+              <label className="form-label">점심 가능한 동료들</label>
+              
+              <div style={{display: 'flex', flexDirection: 'column', gap: '10px'}}>
+                {users.map(user => (
+                  <div 
+                    key={user.id} 
+                    className={`list-item ${selectedUsers.some(u => u.id === user.id) ? 'selected' : ''}`} 
+                    onClick={() => toggleUserSelection(user)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      padding: '15px',
+                      border: '2px solid #f3e3c2',
+                      borderRadius: '12px',
+                      backgroundColor: selectedUsers.some(u => u.id === user.id) ? '#e8f5e9' : '#ffffff',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease',
+                      position: 'relative'
+                    }}
+                  >
+                    <div className="button-option-icon" style={{width: '40px', height: '40px', marginRight: '15px', position: 'relative'}}>
+                      <HappyRiceBowl />
+                      {selectedUsers.some(u => u.id === user.id) && (
+                        <div className="selection-indicator green">✓</div>
+                      )}
+                    </div>
+                    <div style={{flex: 1}}>
+                      <div style={{fontSize: '16px', fontWeight: 'bold'}}>{user.name}</div>
+                    </div>
+                    <div style={{display: 'flex', gap: '5px'}}>
+                      {user.availableDays.filter(day => dayOrder.indexOf(day) >= todayIndex).map(day => (
+                        <span 
+                          key={day}
+                          style={{
+                            padding: '2px 8px',
+                            borderRadius: '12px',
+                            fontSize: '12px',
+                            backgroundColor: day === today ? '#68b3c7' : '#f3e3c2',
+                            color: day === today ? '#ffffff' : '#3a2a15'
+                          }}
+                        >
+                          {day}
+                        </span>
+                      ))}
+                    </div>
                   </div>
-                  <div style={{flex: 1}}>
-                    <div style={{fontSize: '16px', fontWeight: 'bold'}}>{user.name}</div>
-                  </div>
-                  <div style={{display: 'flex', gap: '5px'}}>
-                    {user.availableDays.filter(day => dayOrder.indexOf(day) >= todayIndex).map(day => (
-                      <span 
-                        key={day}
+                ))}
+              </div>
+            </div>
+
+            {/* 선택된 멤버 */}
+            {selectedUsers.length > 0 && (
+              <div className="form-group">
+                <label className="form-label">오늘 점심 멤버</label>
+                <div style={{
+                  padding: '20px',
+                  border: '2px solid #68b3c7',
+                  borderRadius: '20px',
+                  backgroundColor: '#f0f9fb'
+                }}>
+                  <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
+                    {selectedUsers.map(user => (
+                      <div 
+                        key={user.id} 
                         style={{
-                          padding: '2px 8px',
-                          borderRadius: '12px',
-                          fontSize: '12px',
-                          backgroundColor: day === today ? '#68b3c7' : '#f3e3c2',
-                          color: day === today ? '#ffffff' : '#3a2a15'
+                          display: 'flex',
+                          alignItems: 'center',
+                          padding: '5px 10px',
+                          backgroundColor: '#68b3c7',
+                          color: '#ffffff',
+                          borderRadius: '20px',
+                          fontSize: '14px'
                         }}
                       >
-                        {day}
-                      </span>
+                        <span>{user.name}</span>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            toggleUserSelection(user);
+                          }}
+                          style={{
+                            background: 'none',
+                            border: 'none',
+                            color: '#ffffff',
+                            marginLeft: '8px',
+                            cursor: 'pointer',
+                            fontSize: '18px',
+                            padding: '0 5px'
+                          }}
+                        >
+                          ×
+                        </button>
+                      </div>
                     ))}
                   </div>
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* 선택된 멤버 */}
-          {selectedUsers.length > 0 && (
-            <div className="form-group">
-              <label className="form-label">오늘 점심 멤버</label>
-              <div style={{
-                padding: '20px',
-                border: '2px solid #68b3c7',
-                borderRadius: '20px',
-                backgroundColor: '#f0f9fb'
-              }}>
-                <div style={{display: 'flex', flexWrap: 'wrap', gap: '10px'}}>
-                  {selectedUsers.map(user => (
-                    <div 
-                      key={user.id} 
-                      style={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        padding: '5px 10px',
-                        backgroundColor: '#68b3c7',
-                        color: '#ffffff',
-                        borderRadius: '20px',
-                        fontSize: '14px'
-                      }}
-                    >
-                      <span>{user.name}</span>
-                      <button 
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          toggleUserSelection(user);
-                        }}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          color: '#ffffff',
-                          marginLeft: '8px',
-                          cursor: 'pointer',
-                          fontSize: '18px',
-                          padding: '0 5px'
-                        }}
-                      >
-                        ×
-                      </button>
-                    </div>
-                  ))}
-                </div>
               </div>
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {/* 점약잡기 버튼 */}
         {selectedUsers.length > 0 && (

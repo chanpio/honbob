@@ -1,29 +1,68 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 
 export default function LunchAvailabilityForm() {
   const [name, setName] = useState('');
   const [availableToday, setAvailableToday] = useState(null);
   const [weeklyAvailability, setWeeklyAvailability] = useState({
-    '월': false,
-    '화': false,
-    '수': false,
-    '목': false,
-    '금': false
+    'Mon': false,
+    'Tue': false,
+    'Wed': false,
+    'Thu': false,
+    'Fri': false
   });
   const [showErrorDialog, setShowErrorDialog] = useState(false);
   const [errorMessage, setErrorMessage] = useState('');
   
   const navigate = useNavigate();
 
-  // 오늘이 목요일이라고 가정
-  const today = '목';
-  const dayOrder = ['월', '화', '수', '목', '금'];
+  // 현재 한국 시간 기준 요일 계산
+  const getKoreanDay = () => {
+    const now = new Date();
+    // 한국 시간으로 변환 (UTC+9)
+    const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+    const day = koreaTime.getUTCDay();
+    const dayMap = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    return dayMap[day];
+  };
+
+  // 매주 토요일 00:00에 DB 리셋
+  useEffect(() => {
+    const checkAndResetDB = () => {
+      const now = new Date();
+      const koreaTime = new Date(now.getTime() + (9 * 60 * 60 * 1000));
+      
+      // 토요일 00:00인지 확인
+      if (koreaTime.getUTCDay() === 6 && koreaTime.getUTCHours() === 0 && koreaTime.getUTCMinutes() === 0) {
+        localStorage.removeItem('honbabUsers');
+      }
+    };
+
+    // 페이지 로드 시 체크
+    checkAndResetDB();
+    
+    // 매분마다 체크
+    const interval = setInterval(checkAndResetDB, 60000);
+    
+    return () => clearInterval(interval);
+  }, []);
+
+  const today = getKoreanDay();
+  const dayOrder = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri'];
+  const dayDisplay = {
+    'Mon': '월',
+    'Tue': '화',
+    'Wed': '수',
+    'Thu': '목',
+    'Fri': '금'
+  };
   const todayIndex = dayOrder.indexOf(today);
+  const isWeekend = today === 'Sat' || today === 'Sun';
 
   const toggleDay = (day) => {
-    // 오늘 이전의 날짜는 선택 불가
-    if (dayOrder.indexOf(day) < todayIndex) {
+    // 주말인 경우: 모든 요일 선택 가능 (다음 주 월-금)
+    // 평일인 경우: 오늘 이전의 날짜는 선택 불가
+    if (!isWeekend && dayOrder.indexOf(day) < todayIndex) {
       return;
     }
     
@@ -38,25 +77,31 @@ export default function LunchAvailabilityForm() {
     setAvailableToday(isAvailable);
     
     if (isAvailable) {
-      // 점심 약속 없음 선택 시 오늘 요일 자동으로 체크
-      setWeeklyAvailability(prev => ({
-        ...prev,
-        [today]: true
-      }));
+      // 점심 약속 없음 선택 시 오늘 요일 자동으로 체크 (주말 제외)
+      if (!isWeekend && dayOrder.includes(today)) {
+        setWeeklyAvailability(prev => ({
+          ...prev,
+          [today]: true
+        }));
+      }
     } else {
       // 점심 약속 있음 선택 시 모든 요일 선택 해제
       setWeeklyAvailability({
-        '월': false,
-        '화': false,
-        '수': false,
-        '목': false,
-        '금': false
+        'Mon': false,
+        'Tue': false,
+        'Wed': false,
+        'Thu': false,
+        'Fri': false
       });
     }
   };
 
   // 해당 요일이 오늘보다 이전인지 확인하는 함수
   const isPastDay = (day) => {
+    // 주말인 경우 모든 요일 선택 가능
+    if (isWeekend) {
+      return false;
+    }
     return dayOrder.indexOf(day) < todayIndex;
   };
   
@@ -64,8 +109,19 @@ export default function LunchAvailabilityForm() {
   const handleSubmit = (e) => {
     e.preventDefault();
     
-    // 점심 약속 있음을 선택한 경우는 이름 검증 생략
-    if (availableToday === false) {
+    // 숨은 기능: "파괴왕 피오" 입력 시 모든 데이터 삭제
+    if (name === "파괴왕 피오") {
+      localStorage.removeItem('honbabUsers');
+      setErrorMessage('💥 모든 데이터가 삭제되었습니다! 💥');
+      setShowErrorDialog(true);
+      setTimeout(() => {
+        window.location.reload();
+      }, 1500);
+      return;
+    }
+    
+    // 평일인 경우 점심 약속 있음을 선택했을 때의 처리
+    if (!isWeekend && availableToday === false) {
       // 점심 약속 있음을 선택한 경우, 감사 메시지와 함께 첫 페이지로 이동
       setErrorMessage('다음에 함께해요!');
       setShowErrorDialog(true);
@@ -75,14 +131,15 @@ export default function LunchAvailabilityForm() {
       return;
     }
     
-    // 점심 약속 없음을 선택한 경우에만 이름 검증
+    // 이름 검증
     if (!name) {
       setErrorMessage('이름을 입력해주세요!');
       setShowErrorDialog(true);
       return;
     }
     
-    if (availableToday === null) {
+    // 평일인 경우만 오늘 점심 가능 여부 체크
+    if (!isWeekend && availableToday === null) {
       setErrorMessage('오늘 점심 가능 여부를 선택해주세요!');
       setShowErrorDialog(true);
       return;
@@ -92,7 +149,7 @@ export default function LunchAvailabilityForm() {
     const userData = {
       id: Date.now(),
       name,
-      availableToday,
+      availableToday: isWeekend ? null : availableToday, // 주말엔 오늘 점심 데이터를 null로
       availableDays: Object.keys(weeklyAvailability).filter(day => weeklyAvailability[day])
     };
     
@@ -221,44 +278,48 @@ export default function LunchAvailabilityForm() {
           />
         </div>
 
-        {/* 2. 오늘 점심 가능 여부 */}
-        <div className="form-group">
-          <label className="form-label">오늘 점심 가능하세요?</label>
-          
-          <div className="button-container">
-            {/* 점심 약속 없음 버튼 (행복한 밥그릇) */}
-            <div 
-              className={`button-option ${availableToday === true ? 'selected' : ''}`}
-              onClick={() => setAvailableTodayAndUpdate(true)}
-            >
-              <div className="button-option-icon">
-                <HappyRiceBowl />
-                {availableToday === true && (
-                  <div className="selection-indicator green">✓</div>
-                )}
-              </div>
-              <span className="button-option-label">점심 약속 없음</span>
-            </div>
+        {/* 2. 오늘 점심 가능 여부 - 주말에는 표시하지 않음 */}
+        {!isWeekend && (
+          <div className="form-group">
+            <label className="form-label">오늘 점심 가능하세요?</label>
             
-            {/* 점심 약속 있음 버튼 (슬픈 밥그릇) */}
-            <div 
-              className={`button-option ${availableToday === false ? 'selected' : ''}`}
-              onClick={() => setAvailableTodayAndUpdate(false)}
-            >
-              <div className="button-option-icon">
-                <SadRiceBowl />
-                {availableToday === false && (
-                  <div className="selection-indicator red">✓</div>
-                )}
+            <div className="button-container">
+              {/* 점심 약속 없음 버튼 (행복한 밥그릇) */}
+              <div 
+                className={`button-option ${availableToday === true ? 'selected' : ''}`}
+                onClick={() => setAvailableTodayAndUpdate(true)}
+              >
+                <div className="button-option-icon">
+                  <HappyRiceBowl />
+                  {availableToday === true && (
+                    <div className="selection-indicator green">✓</div>
+                  )}
+                </div>
+                <span className="button-option-label">점심 약속 없음</span>
               </div>
-              <span className="button-option-label">점심 약속 있음</span>
+              
+              {/* 점심 약속 있음 버튼 (슬픈 밥그릇) */}
+              <div 
+                className={`button-option ${availableToday === false ? 'selected' : ''}`}
+                onClick={() => setAvailableTodayAndUpdate(false)}
+              >
+                <div className="button-option-icon">
+                  <SadRiceBowl />
+                  {availableToday === false && (
+                    <div className="selection-indicator red">✓</div>
+                  )}
+                </div>
+                <span className="button-option-label">점심 약속 있음</span>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* 3. 이번 주 점심 가능 요일 */}
         <div className="form-group">
-          <label className="form-label">이번 주 점심 가능한 요일</label>
+          <label className="form-label">
+            {isWeekend ? '다음 주 점심 가능한 요일' : '이번 주 점심 가능한 요일'}
+          </label>
           
           <div className="day-selector">
             {Object.keys(weeklyAvailability).map((day) => {
@@ -272,7 +333,7 @@ export default function LunchAvailabilityForm() {
                     disabled={isPast}
                     className={`day-button ${weeklyAvailability[day] ? 'selected' : ''}`}
                   >
-                    {day}
+                    {dayDisplay[day]}
                     {day === today && <div className="today-indicator"></div>}
                   </button>
                 </div>
