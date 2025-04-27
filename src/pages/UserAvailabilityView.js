@@ -289,7 +289,7 @@ export default function UserAvailabilityView() {
               marginBottom: '20px',
               textAlign: 'center'
             }}>
-              점약이 완료되었습니다!
+              연락은 Knox 메신저로 :-)
             </h3>
 
             <div style={{
@@ -299,18 +299,21 @@ export default function UserAvailabilityView() {
               marginBottom: '20px'
             }}>
               <p style={{ fontWeight: 'bold', marginBottom: '10px', color: '#3a2a15' }}>
-                날짜: {today}요일
+                같점 되는 날짜: {(() => {
+                  // 선택된 사용자들의 공통 가능한 날짜 계산
+                  if (selectedUsers.length === 0) return today + '요일';
+                  
+                  const commonDays = selectedUsers[0].availableDays.filter(day => 
+                    selectedUsers.every(user => user.availableDays.includes(day)) &&
+                    dayOrder.indexOf(day) >= todayIndex
+                  );
+                  
+                  if (commonDays.length === 0) return '공통 가능일 없음';
+                  return commonDays.join(', ') + '요일';
+                })()}
               </p>
               <p style={{ fontWeight: 'bold', marginBottom: '10px', color: '#3a2a15' }}>
                 멤버: {selectedUsers.map(user => user.name).join(', ')}
-              </p>
-              <p style={{ 
-                fontStyle: 'italic', 
-                color: '#68b3c7',
-                marginTop: '15px',
-                textAlign: 'center'
-              }}>
-                연락은 Knox 메신저로
               </p>
             </div>
 
