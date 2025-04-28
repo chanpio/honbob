@@ -19,4 +19,8 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = in
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
+const database = getDatabase(app); // 데이터베이스 초기화 추가
+
+export { app, analytics, database }; // 필요한 경우 내보내기
