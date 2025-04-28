@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { database } from '../firebase';
+import { ref, onValue, set } from 'firebase/database';
 
 export default function UserAvailabilityView() {
   const navigate = useNavigate();
@@ -22,33 +24,30 @@ export default function UserAvailabilityView() {
   const [selectedUsers, setSelectedUsers] = useState([]);
   const [showDialog, setShowDialog] = useState(false);
 
-  // localStorage에서 사용자 데이터 로드 (LunchAvailabilityForm에서 입력한 데이터)
+  // Firebase에서 사용자 데이터 로드
   useEffect(() => {
     const loadUsers = () => {
-      const honbabUsers = JSON.parse(localStorage.getItem('honbabUsers') || '[]');
-      console.log('Loaded honbabUsers:', honbabUsers); // 디버깅용
-      
-      // 데이터 형식 변환 (영문 요일을 한글로 변환)
-      const convertedUsers = honbabUsers.map(user => ({
-        id: user.id,
-        name: user.name,
-        availableDays: user.availableDays.map(day => {
-          const dayMap = { 'Mon': '월', 'Tue': '화', 'Wed': '수', 'Thu': '목', 'Fri': '금' };
-          return dayMap[day] || day;
-        })
-      }));
-      console.log('Converted users:', convertedUsers); // 디버깅용
-      setUsers(convertedUsers);
+      const usersRef = ref(database, 'honbabUsers');
+      onValue(usersRef, (snapshot) => {
+        const data = snapshot.val();
+        if (data) {
+          const convertedUsers = Object.values(data).map(user => ({
+            id: user.id,
+            name: user.name,
+            availableDays: user.availableDays.map(day => {
+              const dayMap = { 'Mon': '월', 'Tue': '화', 'Wed': '수', 'Thu': '목', 'Fri': '금' };
+              return dayMap[day] || day;
+            })
+          }));
+          console.log('Loaded users from Firebase:', convertedUsers); // 디버깅용
+          setUsers(convertedUsers);
+        } else {
+          setUsers([]);
+        }
+      });
     };
 
     loadUsers();
-
-    // 페이지가 포커스를 받을 때마다 데이터 새로고침
-    const handleFocus = () => {
-      loadUsers();
-    };
-
-    window.addEventListener('focus', handleFocus);
 
     // 매주 토요일 00:00에 데이터 초기화
     const checkAndResetDB = () => {
@@ -57,7 +56,7 @@ export default function UserAvailabilityView() {
       
       // 토요일 00:00인지 확인
       if (koreaTime.getUTCDay() === 6 && koreaTime.getUTCHours() === 0 && koreaTime.getUTCMinutes() === 0) {
-        localStorage.removeItem('honbabUsers');
+        set(ref(database, 'honbabUsers'), null);
         setUsers([]);
       }
     };
@@ -70,7 +69,6 @@ export default function UserAvailabilityView() {
     
     return () => {
       clearInterval(interval);
-      window.removeEventListener('focus', handleFocus);
     };
   }, []);
 

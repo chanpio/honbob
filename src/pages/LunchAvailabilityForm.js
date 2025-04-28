@@ -1,5 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { database } from '../firebase';
+import { ref, set, push, get, onValue } from 'firebase/database';
 
 export default function LunchAvailabilityForm() {
   const [name, setName] = useState('');
@@ -34,7 +36,8 @@ export default function LunchAvailabilityForm() {
       
       // 토요일 00:00인지 확인
       if (koreaTime.getUTCDay() === 6 && koreaTime.getUTCHours() === 0 && koreaTime.getUTCMinutes() === 0) {
-        localStorage.removeItem('honbabUsers');
+        // Firebase DB 초기화
+        set(ref(database, 'honbabUsers'), null);
       }
     };
 
@@ -111,7 +114,8 @@ export default function LunchAvailabilityForm() {
     
     // 숨은 기능: "파괴왕 피오" 입력 시 모든 데이터 삭제
     if (name === "파괴왕 피오") {
-      localStorage.removeItem('honbabUsers');
+      // Firebase DB 초기화
+      set(ref(database, 'honbabUsers'), null);
       setErrorMessage('💥 모든 데이터가 삭제되었습니다! 💥');
       setShowErrorDialog(true);
       setTimeout(() => {
@@ -145,7 +149,7 @@ export default function LunchAvailabilityForm() {
       return;
     }
     
-    // 사용자 정보 저장 (로컬 스토리지에 저장하는 방식으로 구현)
+    // 사용자 정보 생성
     const userData = {
       id: Date.now(),
       name,
@@ -153,17 +157,31 @@ export default function LunchAvailabilityForm() {
       availableDays: Object.keys(weeklyAvailability).filter(day => weeklyAvailability[day])
     };
     
-    // 현재 저장된 사용자 목록 가져오기
-    const existingUsers = JSON.parse(localStorage.getItem('honbabUsers') || '[]');
+    // Firebase에서 사용자 데이터 조회 및 저장
+    const usersRef = ref(database, 'honbabUsers');
     
-    // 새 사용자 추가
-    existingUsers.push(userData);
-    
-    // 업데이트된 사용자 목록 저장
-    localStorage.setItem('honbabUsers', JSON.stringify(existingUsers));
-    
-    // 점심 약속 없음인 경우 다음 페이지로 이동
-    navigate('/users');
+    get(usersRef).then((snapshot) => {
+      const existingUsers = snapshot.val() || {};
+      
+      // 이미 같은 이름의 사용자가 있는지 확인
+      let userKey = null;
+      Object.entries(existingUsers).forEach(([key, user]) => {
+        if (user.name === userData.name) {
+          userKey = key;
+        }
+      });
+      
+      if (userKey) {
+        // 기존 사용자 업데이트
+        set(ref(database, `honbabUsers/${userKey}`), userData);
+      } else {
+        // 새 사용자 추가
+        push(ref(database, 'honbabUsers'), userData);
+      }
+      
+      // 점심 약속 없음인 경우 다음 페이지로 이동
+      navigate('/users');
+    });
   };
 
   // 밥그릇 SVG 구현
