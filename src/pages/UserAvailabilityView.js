@@ -184,8 +184,8 @@ export default function UserAvailabilityView() {
                             padding: '2px 8px',
                             borderRadius: '12px',
                             fontSize: '12px',
-                            backgroundColor: day === today ? '#68b3c7' : '#f3e3c2',
-                            color: day === today ? '#ffffff' : '#3a2a15'
+                            backgroundColor: '#f3e3c2',
+                            color: '#3a2a15'
                           }}
                         >
                           {day}

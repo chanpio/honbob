@@ -88,14 +88,13 @@ export default function LunchAvailabilityForm() {
         }));
       }
     } else {
-      // 점심 약속 있음 선택 시 모든 요일 선택 해제
-      setWeeklyAvailability({
-        'Mon': false,
-        'Tue': false,
-        'Wed': false,
-        'Thu': false,
-        'Fri': false
-      });
+      // 점심 약속 있음 선택 시 오늘만 체크 해제하고 다른 요일은 유지
+      if (!isWeekend && dayOrder.includes(today)) {
+        setWeeklyAvailability(prev => ({
+          ...prev,
+          [today]: false
+        }));
+      }
     }
   };
 
@@ -124,17 +123,6 @@ export default function LunchAvailabilityForm() {
       return;
     }
     
-    // 평일인 경우 점심 약속 있음을 선택했을 때의 처리
-    if (!isWeekend && availableToday === false) {
-      // 점심 약속 있음을 선택한 경우, 감사 메시지와 함께 첫 페이지로 이동
-      setErrorMessage('다음에 함께해요!');
-      setShowErrorDialog(true);
-      setTimeout(() => {
-        window.location.reload();
-      }, 1500);
-      return;
-    }
-    
     // 이름 검증
     if (!name) {
       setErrorMessage('이름을 입력해주세요!');
@@ -145,6 +133,16 @@ export default function LunchAvailabilityForm() {
     // 평일인 경우만 오늘 점심 가능 여부 체크
     if (!isWeekend && availableToday === null) {
       setErrorMessage('오늘 점심 가능 여부를 선택해주세요!');
+      setShowErrorDialog(true);
+      return;
+    }
+    
+    // 평일이고 오늘 점심 불가능하며 다른 요일도 모두 선택되지 않은 경우
+    if (!isWeekend && 
+        availableToday === false && 
+        !Object.values(weeklyAvailability).some(val => val === true)) {
+      // 점심 약속 있음을 선택하고 다른 요일도 모두 불가능한 경우, 감사 메시지 표시
+      setErrorMessage('다음에 함께해요!');
       setShowErrorDialog(true);
       return;
     }
@@ -179,7 +177,7 @@ export default function LunchAvailabilityForm() {
         push(ref(database, 'honbabUsers'), userData);
       }
       
-      // 점심 약속 없음인 경우 다음 페이지로 이동
+      // 다음 페이지로 이동
       navigate('/users');
     });
   };
