@@ -449,91 +449,93 @@ export default function UserAvailabilityView() {
                         </div>
                       </div>
                       
-                      {/* 오른쪽: 더보기 메뉴 아이콘 */}
-                      <div style={{ 
-                        position: 'relative', 
-                        marginLeft: '10px' 
-                      }}>
-                        <div 
-                          className="more-icon" 
-                          onClick={(e) => toggleMoreMenu(user.id, e)} 
-                          style={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            justifyContent: 'space-between',
-                            alignItems: 'center',
-                            width: '24px',
-                            height: '24px',
-                            padding: '4px',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#f3e3c2' }}></div>
-                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#f3e3c2' }}></div>
-                          <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#f3e3c2' }}></div>
-                        </div>
-                        
-                        {/* 더보기 메뉴 */}
-                        {activeMenu === user.id && (
+                      {/* 오른쪽: 더보기 메뉴 아이콘 - 내 데이터인 경우에만 표시 */}
+                      {isMyData && (
+                        <div style={{ 
+                          position: 'relative', 
+                          marginLeft: '10px' 
+                        }}>
                           <div 
-                            className="more-menu"
+                            className="more-icon" 
+                            onClick={(e) => toggleMoreMenu(user.id, e)} 
                             style={{
-                              position: 'absolute',
-                              top: '30px',
-                              right: '0',
-                              backgroundColor: 'white',
-                              boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-                              borderRadius: '8px',
-                              padding: '8px 0',
-                              zIndex: 10,
-                              width: '120px'
+                              display: 'flex',
+                              flexDirection: 'column',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              width: '24px',
+                              height: '24px',
+                              padding: '4px',
+                              cursor: 'pointer'
                             }}
                           >
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                editUserData(user);
-                              }}
-                              style={{
-                                display: 'block',
-                                width: '100%',
-                                padding: '8px 16px',
-                                textAlign: 'left',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#3a2a15'
-                              }}
-                              onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-                            >
-                              편집
-                            </button>
-                            <button
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                deleteUserData(user);
-                              }}
-                              style={{
-                                display: 'block',
-                                width: '100%',
-                                padding: '8px 16px',
-                                textAlign: 'left',
-                                backgroundColor: 'transparent',
-                                border: 'none',
-                                cursor: 'pointer',
-                                fontSize: '14px',
-                                color: '#ff6b6b'
-                              }}
-                              onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
-                              onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
-                            >
-                              삭제
-                            </button>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#f3e3c2' }}></div>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#f3e3c2' }}></div>
+                            <div style={{ width: '4px', height: '4px', borderRadius: '50%', backgroundColor: '#f3e3c2' }}></div>
                           </div>
-                        )}
-                      </div>
+                          
+                          {/* 더보기 메뉴 */}
+                          {activeMenu === user.id && (
+                            <div 
+                              className="more-menu"
+                              style={{
+                                position: 'absolute',
+                                top: '30px',
+                                right: '0',
+                                backgroundColor: 'white',
+                                boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
+                                borderRadius: '8px',
+                                padding: '8px 0',
+                                zIndex: 10,
+                                width: '120px'
+                              }}
+                            >
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  editUserData(user);
+                                }}
+                                style={{
+                                  display: 'block',
+                                  width: '100%',
+                                  padding: '8px 16px',
+                                  textAlign: 'left',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  color: '#3a2a15'
+                                }}
+                                onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              >
+                                편집
+                              </button>
+                              <button
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  deleteUserData(user);
+                                }}
+                                style={{
+                                  display: 'block',
+                                  width: '100%',
+                                  padding: '8px 16px',
+                                  textAlign: 'left',
+                                  backgroundColor: 'transparent',
+                                  border: 'none',
+                                  cursor: 'pointer',
+                                  fontSize: '14px',
+                                  color: '#ff6b6b'
+                                }}
+                                onMouseOver={(e) => e.target.style.backgroundColor = '#f5f5f5'}
+                                onMouseOut={(e) => e.target.style.backgroundColor = 'transparent'}
+                              >
+                                삭제
+                              </button>
+                            </div>
+                          )}
+                        </div>
+                      )}
                     </div>
                   );
                 })}
